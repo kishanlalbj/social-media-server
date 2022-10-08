@@ -16,6 +16,8 @@ router.get('/', async (req, res, next) => {
       ],
     })
       .populate('postedBy')
+      .populate('comment.user')
+      .sort({ createdAt: -1 })
       .exec();
 
     res.send(posts);
@@ -28,7 +30,10 @@ router.get('/user/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const posts = await Post.find({ postedBy: id }).populate('postedBy');
+    const posts = await Post.find({ postedBy: id })
+      .populate('postedBy')
+      .populate('comment.user')
+      .sort({ createdAt: -1 });
 
     res.send(posts);
   } catch (error) {
@@ -102,8 +107,32 @@ router.post('/like/:id', async (req, res, next) => {
         $push: { likes: req.payload.user },
       },
       { new: 1 }
-    ).populate('likes');
+    );
     res.send(newPost);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/comment/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    const { user } = req.payload;
+
+    const post = await Post.findById(id).lean();
+
+    if (!post) throw createHttpError.NotFound('Post not found');
+
+    const updatePost = await Post.findByIdAndUpdate(
+      id,
+      {
+        $push: { comment: { user, text } },
+      },
+      { new: 1 }
+    );
+
+    res.send(updatePost);
   } catch (error) {
     next(error);
   }

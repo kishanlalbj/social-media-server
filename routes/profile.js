@@ -41,7 +41,12 @@ router.get('/suggesstions', verifyJWT, async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    res.send(id);
+    const profile = await User.findById(id)
+      .select({ password: 0 })
+      .populate('following')
+      .populate('followers');
+
+    res.send(profile);
   } catch (error) {
     next(error);
   }
