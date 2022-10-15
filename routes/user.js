@@ -15,12 +15,12 @@ router.post('/follow/:id', async (req, res, next) => {
 
     if (!hasUser) throw createHttpError.NotFound('User not found');
 
-    const user = await User.findByIdAndUpdate(req.payload.user, {
+    const user = await User.findByIdAndUpdate(req.payload.id, {
       $push: { following: id },
     });
 
     const user2 = await User.findByIdAndUpdate(req.params.id, {
-      $push: { followers: req.payload.user },
+      $push: { followers: req.payload.id },
     });
 
     if (user && user2) res.send({ message: 'Followed' });
@@ -41,16 +41,27 @@ router.post('/unfollow/:id', async (req, res, next) => {
     const hasUser = await User.findById(id);
     if (!hasUser) throw createHttpError.NotFound('User not found');
 
-    const user = await User.findByIdAndUpdate(req.payload.user, {
+    const user = await User.findByIdAndUpdate(req.payload.id, {
       $pull: { following: id },
     });
 
     const user2 = await User.findByIdAndUpdate(id, {
-      $pull: { followers: req.payload.user },
+      $pull: { followers: req.payload.id },
     });
 
     if (user && user2) res.send({ message: 'UnFollowed' });
     else throw createHttpError.InternalServerError();
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/edit/:userId', async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { firstName, lastName } = req.body;
+
+    res.send({ test: 'test' });
   } catch (error) {
     next(error);
   }

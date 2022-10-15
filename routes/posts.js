@@ -5,13 +5,13 @@ const User = require('../models/User');
 
 router.get('/', async (req, res, next) => {
   try {
-    const { following } = await User.findById(req.payload.user)
+    const { following } = await User.findById(req.payload.id)
       .select({ following: 1 })
       .lean();
 
     const posts = await Post.find({
       $or: [
-        { postedBy: req.payload.user },
+        { postedBy: req.payload.id },
         { postedBy: { $in: [...following] } },
       ],
     })
@@ -49,7 +49,7 @@ router.post('/', async (req, res, next) => {
 
     const post = new Post({
       text,
-      postedBy: req.payload.user,
+      postedBy: req.payload.id,
     });
 
     const saved = await (await post.save()).populate('postedBy');
@@ -65,7 +65,7 @@ router.delete('/:id', async (req, res, next) => {
     if (!id) throw createHttpError.BadGateway('Expecting a ID');
 
     let post = await Post.findById(id).populate('postedBy');
-    if (post.postedBy._id.toString() !== req.payload.user)
+    if (post.postedBy._id.toString() !== req.payload.id)
       throw createHttpError.Forbidden('You can only delete your posts');
 
     if (!post) throw createHttpError.NotFound(`Post with id ${id} not found`);
@@ -89,11 +89,11 @@ router.post('/like/:id', async (req, res, next) => {
     if (!post) throw createHttpError.NotFound();
     const stringIdSet = post.likes.map((id) => id.toString());
 
-    if (stringIdSet.includes(req.payload.user)) {
+    if (stringIdSet.includes(req.payload.id)) {
       newPost = await Post.findByIdAndUpdate(
         id,
         {
-          $pull: { likes: req.payload.user },
+          $pull: { likes: req.payload.id },
         },
         { new: 1 }
       ).populate('likes');
@@ -104,7 +104,7 @@ router.post('/like/:id', async (req, res, next) => {
     newPost = await Post.findByIdAndUpdate(
       id,
       {
-        $push: { likes: req.payload.user },
+        $push: { likes: req.payload.id },
       },
       { new: 1 }
     );

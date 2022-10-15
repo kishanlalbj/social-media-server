@@ -6,7 +6,7 @@ const router = require('express').Router();
 
 router.get('/me', verifyJWT, async (req, res, next) => {
   try {
-    const profile = await User.findById(req.payload.user)
+    const profile = await User.findById(req.payload.id)
       .select({ password: 0 })
       .lean();
 
@@ -18,19 +18,19 @@ router.get('/me', verifyJWT, async (req, res, next) => {
   }
 });
 
-router.get('/suggesstions', verifyJWT, async (req, res, next) => {
+router.get('/suggestions', verifyJWT, async (req, res, next) => {
   try {
-    const user = await User.findById(req.payload.user)
+    const user = await User.findById(req.payload.id)
       .select({ following: 1 })
       .lean();
 
     const profiles = await User.find({
       $and: [
-        { _id: { $ne: req.payload.user } },
+        { _id: { $ne: req.payload.id } },
         { _id: { $nin: user.following } },
       ],
     })
-      .select({ password: 0 })
+      .select({ firstName: 1, lastName: 1 })
       .lean();
     res.send(profiles);
   } catch (error) {

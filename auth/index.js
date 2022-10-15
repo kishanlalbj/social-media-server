@@ -49,7 +49,11 @@ router.post('/login', async (req, res, next) => {
     }
 
     jwt.sign(
-      { user: user._id, email: user.email, name: user.firstName },
+      {
+        id: user._id,
+        email: user.email,
+        name: `${user.firstName} ${user.lastName}`,
+      },
       process.env.JWT_SECRET,
       {
         expiresIn: '1h',
