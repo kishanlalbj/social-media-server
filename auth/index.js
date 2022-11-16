@@ -2,8 +2,13 @@
 const createHttpError = require('http-errors');
 const router = require('express').Router();
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const verifyJWT = require('../middlewares/verifyJWT');
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  sendRefreshToken,
+  verifyRefreshToken,
+} = require('./utils');
 
 router.post('/register', async (req, res, next) => {
   try {
@@ -48,21 +53,47 @@ router.post('/login', async (req, res, next) => {
       throw createHttpError.Unauthorized();
     }
 
-    jwt.sign(
-      {
-        id: user._id,
-        email: user.email,
-        name: `${user.firstName} ${user.lastName}`,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: '1h',
-      },
-      (err, token) => {
-        if (err) throw createHttpError.InternalServerError();
-        res.send({ token });
-      }
-    );
+    // jwt.sign(
+    //   {
+    //     id: user._id,
+    //     email: user.email,
+    //     name: `${user.firstName} ${user.lastName}`,
+    //   },
+    //   process.env.JWT_SECRET,
+    //   {
+    //     expiresIn: '1h',
+    //   },
+    //   (err, token) => {
+    //     if (err) throw createHttpError.InternalServerError();
+    //     res.send({ token });
+    //   }
+    // );
+
+    const token = await generateAccessToken(user);
+    const refreshToken = await generateRefreshToken(user);
+    sendRefreshToken(res, refreshToken);
+
+    res.send({ token });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/refresh-token', async (req, res, next) => {
+  try {
+    const token = req.cookies.rtk;
+    if (!token) {
+      throw createHttpError.Unauthorized('No Cookie');
+    }
+
+    const user = await verifyRefreshToken(token);
+
+    if (!user) {
+      throw createHttpError.Unauthorized('Token Expired');
+    }
+
+    const accessToken = await generateAccessToken(user);
+    res.send({ token: accessToken });
   } catch (error) {
     next(error);
   }
@@ -76,6 +107,16 @@ router.get('/me', verifyJWT, async (req, res, next) => {
     setTimeout(() => {
       res.send(req.payload);
     }, 500);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/logout', verifyJWT, async (req, res, next) => {
+  try {
+    res.clearCookie('rtk');
+
+    res.send();
   } catch (error) {
     next(error);
   }

@@ -1,14 +1,15 @@
+/* eslint-disable no-console */
 /* eslint-disable no-undef */
 const mongoose = require('mongoose');
 
 mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => [console.log('Connection Success')])
+  .connect(process.env.MONGO_URI, { autoIndex: false })
+  .then(() => {
+    console.log('Connection Success');
+  })
   .catch((err) => {
     console.error(err);
   });
-require('../models/User');
-require('../models/Post');
 
 mongoose.connection.on('connected', () => {
   console.log('Mongoose connected');

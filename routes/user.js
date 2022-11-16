@@ -4,6 +4,19 @@ const User = require('../models/User');
 
 const router = require('express').Router();
 
+router.get('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select({ password: -1 }).lean();
+
+    if (!user) throw createHttpError.NotFound('User not found');
+
+    res.send(user);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post('/follow/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -23,10 +36,9 @@ router.post('/follow/:id', async (req, res, next) => {
       $push: { followers: req.payload.id },
     });
 
-    if (user && user2) res.send({ message: 'Followed' });
+    if (user && user2) res.send(hasUser);
     else throw createHttpError.InternalServerError();
   } catch (error) {
-    console.log(error);
     next(error);
   }
 });
@@ -38,7 +50,7 @@ router.post('/unfollow/:id', async (req, res, next) => {
     if (!id || !mongoose.isValidObjectId(id))
       throw createHttpError.BadRequest('Invalid data');
 
-    const hasUser = await User.findById(id);
+    const hasUser = await User.findById(id).lean();
     if (!hasUser) throw createHttpError.NotFound('User not found');
 
     const user = await User.findByIdAndUpdate(req.payload.id, {
@@ -49,19 +61,28 @@ router.post('/unfollow/:id', async (req, res, next) => {
       $pull: { followers: req.payload.id },
     });
 
-    if (user && user2) res.send({ message: 'UnFollowed' });
+    if (user && user2) res.send(hasUser);
     else throw createHttpError.InternalServerError();
   } catch (error) {
     next(error);
   }
 });
 
-router.post('/edit/:userId', async (req, res, next) => {
+router.patch('/edit/:id', async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const { id } = req.params;
     const { firstName, lastName } = req.body;
 
-    res.send({ test: 'test' });
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        $set: { firstName, lastName },
+      },
+      { new: 1 }
+    ).lean();
+
+    if (!user) throw createHttpError.NotFound('User not found');
+    res.send(user);
   } catch (error) {
     next(error);
   }

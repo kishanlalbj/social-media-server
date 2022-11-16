@@ -51,10 +51,10 @@ router.delete('/all', async (req, res, next) => {
   }
 });
 
-router.patch('/:id', async (req, res, next) => {
+router.patch('/read/:id', async (req, res, next) => {
   try {
     const notification = await Notification.findOneAndUpdate(
-      { id: req.params.id, receiverId: req.payload.id },
+      { _id: req.params.id },
       { $set: { isRead: true } },
       { new: 1 }
     );

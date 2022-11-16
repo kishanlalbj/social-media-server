@@ -59,6 +59,21 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+router.get('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const post = await Post.findById(id)
+      .populate('postedBy')
+      .populate('comment.user');
+
+    if (!post) throw createHttpError.NotFound('Post not found');
+
+    res.send(post);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.delete('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -118,7 +133,7 @@ router.post('/comment/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
     const { text } = req.body;
-    const { user } = req.payload;
+    const { id: user } = req.payload;
 
     const post = await Post.findById(id).lean();
 
@@ -133,6 +148,27 @@ router.post('/comment/:id', async (req, res, next) => {
     );
 
     res.send(updatePost);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/delete/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { id: userId } = req.payload;
+
+    const post = await Post.findById(id).lean();
+
+    if (!post) throw createHttpError.NotFound('Post Not FOund');
+
+    if (post.postedBy._id.toString() !== userId)
+      throw createHttpError.Forbidden(
+        'You are not allowed to delete this post'
+      );
+
+    const deleted = await Post.findByIdAndDelete(id, { new: 1 });
+    res.send(deleted);
   } catch (error) {
     next(error);
   }

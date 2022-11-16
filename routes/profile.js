@@ -32,7 +32,7 @@ router.get('/suggestions', verifyJWT, async (req, res, next) => {
     })
       .select({ firstName: 1, lastName: 1 })
       .lean();
-    res.send(profiles);
+    res.send(profiles.slice(0, 4));
   } catch (error) {
     next(error);
   }
@@ -47,6 +47,36 @@ router.get('/:id', async (req, res, next) => {
       .populate('followers');
 
     res.send(profile);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/search', async (req, res, next) => {
+  try {
+    const { query } = req.body;
+
+    if (!query) res.send([]);
+
+    const profiles = await User.find({
+      $or: [
+        { firstName: { $regex: query, $options: 'i' } },
+        { lastName: { $regex: query, $options: 'i' } },
+      ],
+    })
+      .select({ password: 0, following: 0, followers: 0, email: 0 })
+      .lean();
+
+    const result = profiles.map((item) => {
+      let obj = {
+        id: item._id,
+        title: `${item.firstName} ${item.lastName}`,
+      };
+
+      return obj;
+    });
+
+    res.send(result);
   } catch (error) {
     next(error);
   }

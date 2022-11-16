@@ -1,7 +1,9 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const helmet = require('helmet');
 const http = require('http');
+const cookieParser = require('cookie-parser');
 const socketServer = require('./socket');
 require('dotenv').config();
 const verifyJWT = require('./middlewares/verifyJWT');
@@ -35,7 +37,18 @@ require('./db');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'));
-app.use(cors());
+app.use(
+  helmet({
+    cors: 'http://localhost:3000',
+  })
+);
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 app.use('/api/auth', authRouter);
 app.use('/api/posts', verifyJWT, postRouter);
@@ -59,5 +72,6 @@ app.use((err, req, res, next) => {
 });
 
 server.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log('Server Running on pot ', PORT);
 });
