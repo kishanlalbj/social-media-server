@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
@@ -5,7 +6,7 @@ const helmet = require('helmet');
 const http = require('http');
 const cookieParser = require('cookie-parser');
 const socketServer = require('./socket');
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 const verifyJWT = require('./middlewares/verifyJWT');
 
 const authRouter = require('./auth/');
