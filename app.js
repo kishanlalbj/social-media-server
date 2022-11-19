@@ -39,13 +39,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'));
 app.use(
   helmet({
-    cors: 'http://localhost:3000',
+    cors: 'https://twinsta.netlify.com',
   })
 );
 app.use(cookieParser());
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: 'https://twinsta.netlify.com',
     credentials: true,
   })
 );
