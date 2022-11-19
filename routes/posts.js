@@ -5,6 +5,7 @@ const User = require('../models/User');
 
 router.get('/', async (req, res, next) => {
   try {
+    if (!req.payload.id) throw createHttpError.Unauthorized();
     const { following } = await User.findById(req.payload.id)
       .select({ following: 1 })
       .lean();

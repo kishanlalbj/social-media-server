@@ -14,7 +14,9 @@ const generateAccessToken = (user) => {
       { expiresIn: '1h', audience: String(user._id) },
       (err, token) => {
         if (err) {
-          reject(createHttpError.InternalServerError());
+          if (err.name === 'JsonWebTokenError')
+            reject(createHttpError.Unauthorized());
+          else reject(createHttpError.InternalServerError());
         }
 
         resolve(token);
@@ -33,11 +35,13 @@ const generateRefreshToken = (user) => {
       },
       process.env.REFRESH_TOKEN_SECRET,
       {
-        expiresIn: '7d',
+        expiresIn: '1y',
       },
       (err, token) => {
         if (err) {
-          reject(createHttpError.InternalServerError());
+          if (err.name === 'JsonWebTokenError')
+            reject(createHttpError.Unauthorized());
+          else reject(createHttpError.InternalServerError());
         }
 
         resolve(token);

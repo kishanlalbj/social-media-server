@@ -104,9 +104,7 @@ router.get('/me', verifyJWT, async (req, res, next) => {
     const header = req.headers['authorization'];
     if (!header) throw createHttpError.Unauthorized();
 
-    setTimeout(() => {
-      res.send(req.payload);
-    }, 500);
+    res.send(req.payload);
   } catch (error) {
     next(error);
   }
