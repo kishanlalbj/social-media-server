@@ -40,13 +40,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'));
 app.use(
   helmet({
-    cors: 'https://twinsta.netlify.com',
+    cors: process.env.WEB_URL,
   })
 );
 app.use(cookieParser());
 app.use(
   cors({
-    origin: 'https://twinsta.netlify.com',
+    origin: process.env.WEB_URL,
     credentials: true,
   })
 );
