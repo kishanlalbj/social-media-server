@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
 const mongoose = require('mongoose');
-
+console.log(process.env.MONGO_URI);
 mongoose
   .connect(process.env.MONGO_URI, { autoIndex: false })
   .then(() => {

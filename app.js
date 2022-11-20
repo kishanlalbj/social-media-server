@@ -6,7 +6,12 @@ const helmet = require('helmet');
 const http = require('http');
 const cookieParser = require('cookie-parser');
 const socketServer = require('./socket');
-if (process.env.NODE_ENV !== 'production') require('dotenv').config();
+
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config({
+    path: `./.env.${process.env.NODE_ENV}`,
+  });
+}
 const verifyJWT = require('./middlewares/verifyJWT');
 
 const authRouter = require('./auth/');
